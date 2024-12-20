@@ -15,6 +15,9 @@ router.get('/', async (req, res) => {
              cart = new Cart({ products: [] }); // Si no existe, crear un carrito vacío
             await cart.save();
         }
+        if (!cart || cart.products.length === 0) {
+            return res.render('cart', { cart: null, message: 'El carrito está vacío.' });
+        }
 
         console.log('Carrito actual:', cart);
         res.render('cart', { cart: cart.toObject() }); // Renderiza la vista "cart" y pasa el carrito
@@ -45,10 +48,15 @@ router.get('/add/:id', async (req, res) => {
         const productIndex = cart.products.findIndex(item => item.product.toString() === product._id.toString());
 
         if (productIndex === -1) {
-            cart.products.push({ product: product._id, quantity: 1 });
+            cart.products.push({ product: product._id, quantity: 1});
         } else {
             cart.products[productIndex].quantity += 1; // Si ya está, solo aumentamos la cantidad
         }
+
+
+
+
+
 
         // Guardar el carrito y depurar
         await cart.save();
@@ -60,10 +68,6 @@ router.get('/add/:id', async (req, res) => {
         res.status(500).send('Error interno del servidor');
     }
 });
-
-
-
-  
 
 
 router.post('/add/:id', async (req, res) => {
