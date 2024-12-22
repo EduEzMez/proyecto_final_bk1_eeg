@@ -32,10 +32,10 @@ router.get('/:id', async (req, res) => {
 // Ruta para crear un producto
 router.post('/', async (req, res) => {
   try {
-    const { name, price, code, description, stock } = req.body;
+    const { name, price, code, description, stock, category } = req.body;
 
     // Validar los campos requeridos
-    if (!name || !price || !description || !stock || !code) {
+    if (!name || !price || !description || !stock || !code || !category) {
       return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
     }
 
@@ -54,10 +54,10 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, code, description, stock } = req.body;
+    const { name, price, code, description, stock, category} = req.body;
 
     // Validar los campos requeridos
-    if (!name || !price || !description || !stock || !code) {
+    if (!name || !price || !description || !stock || !code || !category) {
       return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
     }
 
