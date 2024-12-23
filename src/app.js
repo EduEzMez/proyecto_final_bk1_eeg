@@ -22,14 +22,33 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('./src/public'));
 
-// Configurar Handlebars como motor de vistas
+// Configurar Handlebars como motor de vistas con helpers personalizados
 const hbs = handlebars.create({
   helpers: {
     ifEquals: function (a, b, options) {
       return a === b ? options.fn(this) : options.inverse(this);
-    }
-  }
+    },
+    add: function (a, b) {
+      return a + b;
+    },
+    subtract: function (a, b) {
+      return a - b;
+    },
+    gt: function (a, b) {
+      return a > b;
+    },
+    lt: function (a, b) {
+      return a < b;
+    },
+    range: function (start, end) {
+      return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+    },
+  },
 });
+app.engine('handlebars', hbs.engine);
+app.set('view engine', 'handlebars');
+app.set('views', './src/views');
+
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 app.set('views', './src/views');
@@ -44,25 +63,42 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 
 // Ruta principal con filtro de categoría
+// Ruta principal con paginación y filtro de categoría
 app.get('/', async (req, res) => {
   try {
     const selectedCategory = req.query.category || ''; // Obtiene la categoría seleccionada
+    const page = parseInt(req.query.page) || 1; // Página actual (por defecto 1)
+    const limit = 10; // Productos por página
+    const skip = (page - 1) * limit; // Calcula los productos a omitir según la página actual
+
+    // Construye el query con la categoría seleccionada (si aplica)
     const query = selectedCategory ? { category: selectedCategory } : {};
-    
-    const products = await Product.find(query).lean(); // Filtra los productos por categoría
-    const categories = await Product.distinct('category'); // Obtiene todas las categorías disponibles
-    
+
+    // Consulta a la base de datos
+    const [products, totalProducts] = await Promise.all([
+      Product.find(query).skip(skip).limit(limit).lean(), // Productos paginados
+      Product.countDocuments(query), // Total de productos en la categoría seleccionada
+    ]);
+
+    const totalPages = Math.ceil(totalProducts / limit); // Total de páginas
+
+    // Obtiene todas las categorías disponibles
+    const categories = await Product.distinct('category');
+
     res.render('home', {
       title: 'Tienda Online',
       products,
       categories,
-      selectedCategory
+      selectedCategory,
+      currentPage: page,
+      totalPages,
     });
   } catch (error) {
     console.error('Error al obtener los productos:', error);
     res.status(500).send('Error interno del servidor');
   }
 });
+
 
 // Ruta para mostrar el carrito
 app.get('/api/cart', async (req, res) => {

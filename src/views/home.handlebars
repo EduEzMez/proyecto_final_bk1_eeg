@@ -41,8 +41,32 @@
       {{/each}}
     </ul>
   </div>
+  <!-- Paginación -->
+<div class="pagination">
+  {{#if (gt currentPage 1)}}
+    <a href="/?page={{subtract currentPage 1}}{{#if selectedCategory}}&category={{selectedCategory}}{{/if}}">
+      Anterior
+    </a>
+  {{/if}}
+
+  {{#each (range 1 totalPages)}}
+    <a href="/?page={{this}}{{#if ../selectedCategory}}&category={{../selectedCategory}}{{/if}}" 
+       class="{{#ifEquals ../currentPage this}}active{{/ifEquals}}">
+      {{this}}
+    </a>
+  {{/each}}
+
+  {{#if (lt currentPage totalPages)}}
+    <a href="/?page={{add currentPage 1}}{{#if selectedCategory}}&category={{selectedCategory}}{{/if}}">
+      Siguiente
+    </a>
+  {{/if}}
+</div>
+
 </body>
 </html>
+
+
 
 
 
